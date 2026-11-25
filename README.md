@@ -1,6 +1,6 @@
-# Kopje Driving School
+# Travis Driving School
 
-need to create a website based in harare for company that does driving lessons that is looking like senor developer dd it not ai so no a bend design or ai things has to look like a pro did it
+Driving lessons in Harare, taught on real roads by patient VID-registered instructors.
 
 This project was built with [Lovable](https://lovable.dev).
 

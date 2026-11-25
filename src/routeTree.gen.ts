@@ -12,7 +12,9 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as AreasRouteImport } from './routes/areas'
+import { Route as BookRouteImport } from './routes/book'
 import { Route as ContactRouteImport } from './routes/contact'
+import { Route as CreditsRouteImport } from './routes/credits'
 import { Route as LessonsRouteImport } from './routes/lessons'
 import { Route as PricesRouteImport } from './routes/prices'
 
@@ -31,9 +33,19 @@ const AreasRoute = AreasRouteImport.update({
   path: '/areas',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BookRoute = BookRouteImport.update({
+  id: '/book',
+  path: '/book',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ContactRoute = ContactRouteImport.update({
   id: '/contact',
   path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CreditsRoute = CreditsRouteImport.update({
+  id: '/credits',
+  path: '/credits',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LessonsRoute = LessonsRouteImport.update({
@@ -51,7 +63,9 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/areas': typeof AreasRoute
+  '/book': typeof BookRoute
   '/contact': typeof ContactRoute
+  '/credits': typeof CreditsRoute
   '/lessons': typeof LessonsRoute
   '/prices': typeof PricesRoute
 }
@@ -59,7 +73,9 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/areas': typeof AreasRoute
+  '/book': typeof BookRoute
   '/contact': typeof ContactRoute
+  '/credits': typeof CreditsRoute
   '/lessons': typeof LessonsRoute
   '/prices': typeof PricesRoute
 }
@@ -68,24 +84,52 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/areas': typeof AreasRoute
+  '/book': typeof BookRoute
   '/contact': typeof ContactRoute
+  '/credits': typeof CreditsRoute
   '/lessons': typeof LessonsRoute
   '/prices': typeof PricesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about' | '/areas' | '/contact' | '/lessons' | '/prices'
+  fullPaths:
+    | '/'
+    | '/about'
+    | '/areas'
+    | '/book'
+    | '/contact'
+    | '/credits'
+    | '/lessons'
+    | '/prices'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about' | '/areas' | '/contact' | '/lessons' | '/prices'
+  to:
+    | '/'
+    | '/about'
+    | '/areas'
+    | '/book'
+    | '/contact'
+    | '/credits'
+    | '/lessons'
+    | '/prices'
   id:
-    '__root__' | '/' | '/about' | '/areas' | '/contact' | '/lessons' | '/prices'
+    | '__root__'
+    | '/'
+    | '/about'
+    | '/areas'
+    | '/book'
+    | '/contact'
+    | '/credits'
+    | '/lessons'
+    | '/prices'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
   AreasRoute: typeof AreasRoute
+  BookRoute: typeof BookRoute
   ContactRoute: typeof ContactRoute
+  CreditsRoute: typeof CreditsRoute
   LessonsRoute: typeof LessonsRoute
   PricesRoute: typeof PricesRoute
 }
@@ -113,11 +157,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AreasRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/book': {
+      id: '/book'
+      path: '/book'
+      fullPath: '/book'
+      preLoaderRoute: typeof BookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/contact': {
       id: '/contact'
       path: '/contact'
       fullPath: '/contact'
       preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/credits': {
+      id: '/credits'
+      path: '/credits'
+      fullPath: '/credits'
+      preLoaderRoute: typeof CreditsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/lessons': {
@@ -141,7 +199,9 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
   AreasRoute: AreasRoute,
+  BookRoute: BookRoute,
   ContactRoute: ContactRoute,
+  CreditsRoute: CreditsRoute,
   LessonsRoute: LessonsRoute,
   PricesRoute: PricesRoute,
 }
