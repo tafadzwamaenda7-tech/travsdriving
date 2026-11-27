@@ -1,16 +1,21 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowUpRight } from "lucide-react";
 
+import { Reveal } from "@/components/motion";
+import { Reel } from "@/components/reel";
 import { CTA, PageHero, StatGrid } from "@/components/site";
-import { IMG, team } from "@/lib/content";
-import { meta, WA } from "@/lib/site";
+import { team } from "@/lib/content";
+import { PHOTO, VIDEO } from "@/lib/media";
+import { meta } from "@/lib/site";
 
 export const Route = createFileRoute("/about")({
-  head: () =>
-    meta(
+  head: () => ({
+    ...meta(
       "About us",
       "Meet the VID-registered instructors behind Travis Driving School, teaching Harare to drive since 2009.",
     ),
+    links: [{ rel: "preload", as: "image", href: PHOTO.fleet }],
+  }),
   component: About,
 });
 
@@ -44,16 +49,21 @@ function About() {
         kicker="About us · Since 2009"
         title={<>Small school. Serious about roads.</>}
         intro="We started with one car and a lot of patience. Today we have six cars and three instructors — still small enough to know every student by name."
-        image={IMG.square}
-        imageAlt="People in Africa Unity Square, Harare"
-        imageCaption="Central Harare"
-      />
+        image={PHOTO.fleet}
+      >
+        <Link to="/book" className="btn btn--light">
+          Book a lesson <ArrowUpRight size={18} />
+        </Link>
+        <Link to="/contact" className="arrow-link arrow-link-light">
+          Ask a question <ArrowUpRight size={16} />
+        </Link>
+      </PageHero>
 
-      <section className="shell py-16 md:py-20">
-        <div className="grid gap-10 lg:grid-cols-12 lg:gap-14">
-          <div className="lg:col-span-5">
-            <p className="eyebrow text-blue">How we teach</p>
-            <h2 className="display-sm mt-4 text-[clamp(1.9rem,3.6vw,2.9rem)] text-ink">
+      <section className="shell section-pad">
+        <div className="bento-grid">
+          <div className="md:col-span-5">
+            <p className="eyebrow">How we teach</p>
+            <h2 className="display-sm mt-4 text-[clamp(2rem,4vw,3rem)] text-ink">
               No shortcuts. No promises we can&apos;t keep.
             </h2>
             <p className="lede mt-4 max-w-md">
@@ -64,44 +74,55 @@ function About() {
               <StatGrid />
             </div>
           </div>
-          <div className="overflow-hidden rounded-[32px] bg-surface card-shadow-lg lg:col-span-7">
-            <img
-              src={IMG.traffic}
-              alt="A busy street in Harare"
-              className="photo-soft h-[300px] w-full object-cover md:h-[440px]"
+          <Reveal kind="scale" className="bento-card overflow-hidden md:col-span-7">
+            <Reel
+              reel={VIDEO.street}
+              priority
+              rounded="rounded-none"
+              className="aspect-[16/10] w-full"
             />
-            <p className="p-6 text-sm leading-relaxed text-muted-text">
-              Nervous? Most of our students are. We start slow, explain everything, and never raise
-              our voices.
-            </p>
-          </div>
+            <div className="card-pad">
+              <p className="text-sm leading-relaxed text-muted-text">
+                Nervous? Most of our students are. We start slow, explain everything, and never
+                raise our voices.
+              </p>
+            </div>
+          </Reveal>
         </div>
       </section>
 
-      <section className="bg-surface-soft py-20 md:py-24">
+      <section className="paper-lines section-pad bg-surface-soft/70">
         <div className="shell">
-          <p className="eyebrow text-blue">The long version</p>
-          <h2 className="display-sm mt-4 max-w-3xl text-[clamp(1.9rem,3.6vw,2.9rem)] text-ink">
+          <p className="eyebrow">The long version</p>
+          <h2 className="display-sm mt-4 max-w-3xl text-[clamp(2rem,4vw,3rem)] text-ink">
             Seventeen years of Harare roads.
           </h2>
-          <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {timeline.map((item) => (
-              <article key={item.year} className="surface-card p-6">
-                <span className="inline-flex rounded-full bg-blue-soft px-3 py-1.5 text-xs font-semibold text-blue-deep">
+          <div className="bento-grid mt-12">
+            {timeline.map((item, index) => (
+              <Reveal
+                key={item.year}
+                as="article"
+                kind={index % 2 === 0 ? "rise" : "pop"}
+                delay={index * 70}
+                className={`bento-card card-pad ${
+                  index === 0 || index === 3 ? "md:col-span-7" : "md:col-span-5"
+                }`}
+              >
+                <span className="display tabular text-4xl leading-none text-leaf-deep">
                   {item.year}
                 </span>
-                <h3 className="display-sm mt-6 text-lg text-ink">{item.title}</h3>
+                <h3 className="display-sm mt-6 text-xl text-ink">{item.title}</h3>
                 <p className="mt-3 text-sm leading-relaxed text-muted-text">{item.copy}</p>
-              </article>
+              </Reveal>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="shell py-20 md:py-24">
+      <section className="shell section-pad">
         <div className="grid gap-10 lg:grid-cols-12 lg:gap-14">
           <div className="lg:col-span-4">
-            <p className="eyebrow text-blue">The people</p>
+            <p className="eyebrow">The people</p>
             <h2 className="display-sm mt-4 text-3xl text-ink">
               Three instructors you&apos;ll actually remember.
             </h2>
@@ -109,48 +130,46 @@ function About() {
               VID-registered, patient, and happiest when a nervous student suddenly gets it.
             </p>
           </div>
-          <div className="grid gap-4 sm:grid-cols-3 lg:col-span-8">
-            {team.map((person) => (
-              <article key={person.name} className="surface-card p-6">
-                <span className="flex h-14 w-14 items-center justify-center rounded-full bg-ink text-sm font-semibold text-white">
+          <div className="bento-card divide-y divide-line overflow-hidden lg:col-span-8">
+            {team.map((person, index) => (
+              <Reveal
+                key={person.name}
+                as="article"
+                delay={index * 65}
+                className="flex flex-wrap items-center gap-4 p-5 sm:gap-6"
+              >
+                <span className="display flex h-14 w-14 shrink-0 items-center justify-center rounded-[16px] bg-ink text-sm text-warm-white">
                   {person.initials}
                 </span>
-                <h3 className="display-sm mt-6 text-xl text-ink">{person.name}</h3>
-                <p className="mt-1.5 text-sm leading-relaxed text-muted-text">{person.role}</p>
-                <span className="mt-5 inline-flex rounded-full bg-canvas px-3 py-1.5 text-xs font-medium text-ink-soft ring-1 ring-line-soft">
-                  {person.years} teaching
-                </span>
-              </article>
+                <div className="min-w-0 flex-1">
+                  <h3 className="display-sm text-xl text-ink">{person.name}</h3>
+                  <p className="mt-1 text-sm text-muted-text">{person.role}</p>
+                </div>
+                <p className="meta-line text-muted-text sm:text-right">{person.years} teaching</p>
+              </Reveal>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="shell">
-        <div className="relative overflow-hidden rounded-[40px] bg-ink px-8 py-12 text-white md:px-14 md:py-16">
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute -right-24 -top-32 h-80 w-80 rounded-full bg-blue/25 blur-3xl"
-          />
-          <div className="relative grid gap-8 lg:grid-cols-12 lg:items-end lg:gap-14">
-            <div className="lg:col-span-8">
-              <p className="eyebrow eyebrow-light">What we won&apos;t do</p>
-              <h2 className="display-sm mt-5 max-w-3xl text-[clamp(1.9rem,4vw,3.2rem)] text-white">
-                Sell you a &ldquo;guaranteed pass&rdquo;. Rush a nervous driver. Cut a lesson short.
-              </h2>
-            </div>
-            <div className="lg:col-span-4 lg:text-right">
-              <a href={WA} className="btn btn-light btn-lg">
-                Meet your instructor <ArrowUpRight size={18} />
-              </a>
-            </div>
+      <section className="shell pb-4">
+        <Reveal
+          kind="scale"
+          className="bento-card bento-card--dark card-pad-lg flex flex-wrap items-end justify-between gap-8"
+        >
+          <div>
+            <p className="eyebrow">What we won&apos;t do</p>
+            <h2 className="display-sm mt-5 max-w-3xl text-[clamp(1.9rem,4vw,3.2rem)] text-warm-white">
+              Sell you a &ldquo;guaranteed pass&rdquo;. Rush a nervous driver. Cut a lesson short.
+            </h2>
           </div>
-        </div>
+          <Link to="/contact" className="btn btn--light">
+            Meet your instructor <ArrowUpRight size={17} />
+          </Link>
+        </Reveal>
       </section>
 
-      <div className="pt-20 md:pt-24">
-        <CTA />
-      </div>
+      <CTA />
     </>
   );
 }

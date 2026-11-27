@@ -9,6 +9,7 @@ import {
   type ErrorComponentProps,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
+import { ArrowUpRight } from "lucide-react";
 
 import { Header, Footer } from "../components/site";
 import appCss from "../styles.css?url";
@@ -16,19 +17,25 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 
 function NotFoundComponent() {
   return (
-    <div className="flex min-h-[70vh] items-center justify-center bg-canvas px-4 py-16">
-      <div className="surface-card w-full max-w-xl px-8 py-12 text-center md:px-12">
-        <p className="eyebrow text-blue">Wrong turn</p>
-        <h1 className="display mt-5 text-[clamp(4rem,14vw,7rem)] leading-none text-ink">404</h1>
-        <h2 className="display-sm mt-5 text-2xl text-ink">This road doesn&apos;t go anywhere.</h2>
-        <p className="mt-3 text-sm leading-relaxed text-muted-text">
-          The page you&apos;re looking for has moved or never existed. Let&apos;s get you back on
-          route.
-        </p>
-        <div className="mt-8">
-          <Link to="/" className="btn btn-primary">
-            Go home
-          </Link>
+    <div className="flex min-h-[70vh] items-center bg-paper px-4 py-16">
+      <div className="shell py-12">
+        <div className="bento-card card-pad-lg grid gap-8 md:grid-cols-12 md:items-end md:gap-10">
+          <div className="md:col-span-8">
+            <p className="eyebrow">Wrong turn</p>
+            <h1 className="display mt-3 text-[clamp(5rem,16vw,9rem)] leading-none text-ink">404</h1>
+            <h2 className="display-sm mt-5 max-w-xl text-[clamp(1.75rem,3.5vw,2.75rem)] text-ink">
+              This road doesn&apos;t go anywhere.
+            </h2>
+            <p className="lede mt-4 max-w-lg">
+              The page you&apos;re looking for has moved or never existed. Let&apos;s get you back
+              on route.
+            </p>
+          </div>
+          <div className="md:col-span-4 md:justify-self-end">
+            <Link to="/" className="arrow-link text-sm">
+              Go home <ArrowUpRight size={16} />
+            </Link>
+          </div>
         </div>
       </div>
     </div>
@@ -43,27 +50,33 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
   }, [error]);
 
   return (
-    <div className="flex min-h-[70vh] items-center justify-center bg-canvas px-4 py-16">
-      <div className="surface-card w-full max-w-xl px-8 py-12 text-center md:px-12">
-        <p className="eyebrow text-blue">Engine trouble</p>
-        <h1 className="display-sm mt-5 text-4xl text-ink">This page didn&apos;t load.</h1>
-        <p className="mt-4 text-sm leading-relaxed text-muted-text">
-          Something went wrong on our end. Try again, or head back to the start.
-        </p>
-        <div className="mt-8 flex flex-wrap justify-center gap-3">
-          <button
-            type="button"
-            onClick={() => {
-              router.invalidate();
-              reset();
-            }}
-            className="btn btn-primary"
-          >
-            Try again
-          </button>
-          <Link to="/" className="btn btn-outline">
-            Go home
-          </Link>
+    <div className="flex min-h-[70vh] items-center bg-paper px-4 py-16">
+      <div className="shell py-12">
+        <div className="bento-card card-pad-lg grid gap-8 md:grid-cols-12 md:items-end md:gap-10">
+          <div className="md:col-span-8">
+            <p className="eyebrow">Engine trouble</p>
+            <h1 className="display-sm mt-5 max-w-2xl text-[clamp(2.25rem,5vw,4rem)] text-ink">
+              This page didn&apos;t load.
+            </h1>
+            <p className="lede mt-4 max-w-lg">
+              Something went wrong on our end. Try again, or head back to the start.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-3 md:col-span-4 md:justify-self-end">
+            <button
+              type="button"
+              onClick={() => {
+                router.invalidate();
+                reset();
+              }}
+              className="arrow-link text-sm"
+            >
+              Try again
+            </button>
+            <Link to="/" className="arrow-link text-sm">
+              Go home
+            </Link>
+          </div>
         </div>
       </div>
     </div>
@@ -95,7 +108,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap",
       },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon", sizes: "any" },
       { rel: "apple-touch-icon", href: "/favicon.png" },
@@ -114,6 +127,9 @@ function RootShell({ children }: { children: ReactNode }) {
         <HeadContent />
       </head>
       <body>
+        <a href="#main-content" className="skip-link">
+          Skip to content
+        </a>
         {children}
         <Scripts />
       </body>
@@ -127,9 +143,9 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <div className="flex min-h-screen flex-col overflow-x-hidden bg-canvas font-sans text-ink antialiased">
+      <div className="site-shell flex min-h-screen flex-col overflow-x-hidden bg-paper font-sans text-ink antialiased">
         <Header />
-        <main className="flex-1">
+        <main id="main-content" tabIndex={-1} className="flex-1">
           <Outlet />
         </main>
         <Footer />

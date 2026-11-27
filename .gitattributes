@@ -1,0 +1,10 @@
+# Keep text files LF on every platform so Prettier/ESLint agree.
+* text=auto eol=lf
+
+# Supplied media must stay byte-for-byte unchanged.
+*.mp4 binary
+*.jpg binary
+*.jpeg binary
+*.png binary
+*.webp binary
+*.ico binary

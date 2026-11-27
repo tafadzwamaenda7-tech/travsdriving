@@ -1,8 +1,8 @@
 import { ArrowUpRight, Check } from "lucide-react";
 import { useState, type FormEvent } from "react";
 
-import { WA } from "@/lib/site";
 import { zones } from "@/lib/content";
+import { WA } from "@/lib/site";
 
 const suburbs = zones.flatMap((z) => [...z.suburbs]);
 
@@ -42,27 +42,30 @@ export function BookingForm({ dark = false }: { dark?: boolean }) {
 
   if (sent) {
     return (
-      <div className="surface-card flex min-h-[420px] flex-col justify-center p-8 md:p-10">
-        <span className="flex h-14 w-14 items-center justify-center rounded-full bg-blue-soft text-blue">
+      <div
+        aria-live="polite"
+        className="bento-card bento-card--leaf card-pad-lg flex min-h-[420px] flex-col justify-center"
+      >
+        <span className="flex h-14 w-14 items-center justify-center rounded-[16px] bg-ink text-warm-white">
           <Check size={26} />
         </span>
         <h3 className="display-sm mt-7 text-3xl text-ink">Your message is ready.</h3>
         <p className="mt-3 max-w-sm leading-relaxed text-muted-text">
-          WhatsApp should have opened in a new tab. If it didn&apos;t, use the button below — your
+          WhatsApp should have opened in a new tab. If it didn&apos;t, use the link below — your
           details are already filled in.
         </p>
         <a
           href={href}
           target="_blank"
           rel="noopener noreferrer"
-          className="btn btn-primary mt-8 self-start"
+          className="arrow-link mt-8 self-start"
         >
           Open WhatsApp <ArrowUpRight size={17} />
         </a>
         <button
           type="button"
           onClick={() => setSent(false)}
-          className="mt-5 self-start text-sm font-medium text-blue transition-colors hover:text-blue-deep"
+          className="mt-4 inline-flex min-h-[44px] items-center self-start text-sm font-semibold text-leaf-deep transition-colors hover:text-ink"
         >
           Edit my details
         </button>
@@ -71,7 +74,7 @@ export function BookingForm({ dark = false }: { dark?: boolean }) {
   }
 
   return (
-    <form onSubmit={submit} className="surface-card grid gap-5 p-6 sm:grid-cols-2 sm:p-8 md:p-9">
+    <form onSubmit={submit} className="bento-card card-pad-lg grid gap-5 sm:grid-cols-2">
       <div className="field">
         <label htmlFor="name">Your name</label>
         <input
@@ -165,10 +168,10 @@ export function BookingForm({ dark = false }: { dark?: boolean }) {
         />
       </div>
       <div className="sm:col-span-2">
-        <button type="submit" className="btn btn-primary w-full justify-between">
+        <button type="submit" className="btn w-full justify-between">
           Send booking request <ArrowUpRight size={18} />
         </button>
-        <p className={`mt-3 text-xs ${dark ? "text-white/55" : "text-muted-text"}`}>
+        <p className={`mt-3 text-xs ${dark ? "text-warm-white/55" : "text-muted-text"}`}>
           We&apos;ll confirm a time personally. No payment needed to enquire.
         </p>
       </div>

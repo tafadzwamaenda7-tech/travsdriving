@@ -1,9 +1,13 @@
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, ArrowUpRight, Menu, MessageCircle, Phone, X } from "lucide-react";
-import { useEffect, useState, type ReactNode } from "react";
+import { ArrowRight, ArrowUpRight, MapPin } from "lucide-react";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 
+import { Enter, Reveal, usePointerParallax } from "@/components/motion";
+import { Reel, type ReelSource } from "@/components/reel";
+import { journey, stats } from "@/lib/content";
 import { ADDRESS, EMAIL, LOGO, PHONE, TEL, WA } from "@/lib/site";
-import { journey } from "@/lib/content";
+
+type RoutePath = "/" | "/lessons" | "/prices" | "/areas" | "/about" | "/book" | "/contact";
 
 const nav = [
   { to: "/lessons", label: "Lessons" },
@@ -11,15 +15,43 @@ const nav = [
   { to: "/areas", label: "Areas" },
   { to: "/about", label: "About" },
   { to: "/contact", label: "Contact" },
-] as const;
+] as const satisfies ReadonlyArray<{ to: RoutePath; label: string }>;
+
+const footerLearn = [
+  { to: "/lessons", label: "How lessons work" },
+  { to: "/prices", label: "Prices" },
+  { to: "/book", label: "Book a lesson" },
+] as const satisfies ReadonlyArray<{ to: RoutePath; label: string }>;
+
+const footerSchool = [
+  { to: "/", label: "Home" },
+  { to: "/areas", label: "Pick-up areas" },
+  { to: "/about", label: "About Travis" },
+  { to: "/contact", label: "Contact" },
+] as const satisfies ReadonlyArray<{ to: RoutePath; label: string }>;
+
+const mapHref = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(ADDRESS)}`;
+
+function useScrolled(offset = 24) {
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > offset);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [offset]);
+
+  return scrolled;
+}
 
 export function Logo({ compact = false }: { compact?: boolean }) {
   return (
-    <span className="inline-flex items-center rounded-2xl bg-white px-2 py-1.5 ring-1 ring-line-soft card-shadow">
+    <span className="inline-flex items-center rounded-[14px] border border-line bg-surface px-2.5 py-1.5 shadow-sm">
       <img
         src={LOGO}
         alt="Travis Driving School"
-        className={`${compact ? "h-8" : "h-9 md:h-10"} w-auto rounded-lg object-contain`}
+        className={`${compact ? "h-9" : "h-10 md:h-11"} w-auto object-contain`}
       />
     </span>
   );
@@ -27,143 +59,122 @@ export function Logo({ compact = false }: { compact?: boolean }) {
 
 export function Header() {
   const [open, setOpen] = useState(false);
+  const scrolled = useScrolled();
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const mobileNavRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     if (!open) return;
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    mobileNavRef.current?.querySelector<HTMLAnchorElement>("a")?.focus();
+
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      setOpen(false);
+      menuButtonRef.current?.focus();
+    };
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", onKey);
+    };
   }, [open]);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-line-soft bg-canvas/85 backdrop-blur-xl">
-      <div className="shell relative flex h-[72px] items-center justify-between gap-4">
+    <header data-scrolled={scrolled} className="site-header">
+      <div className="shell grid h-[76px] grid-cols-[1fr_auto_1fr] items-center gap-4">
         <Link
           to="/"
           aria-label="Travis Driving School, home"
           onClick={() => setOpen(false)}
-          className="shrink-0 transition-opacity hover:opacity-80"
+          className="justify-self-start shrink-0 transition-transform hover:-translate-y-0.5"
         >
           <Logo />
         </Link>
 
-        <nav
-          aria-label="Main navigation"
-          className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-0.5 rounded-full bg-white/80 p-1 ring-1 ring-line-soft card-shadow lg:flex"
-        >
-          {nav.map((n) => (
+        <nav aria-label="Main navigation" className="hidden items-center gap-1 lg:flex">
+          {nav.map((item) => (
             <Link
-              key={n.to}
-              to={n.to}
-              className="rounded-full px-4 py-2 text-sm font-medium text-ink-soft transition-colors hover:bg-canvas hover:text-ink"
-              activeProps={{ className: "bg-ink text-white hover:bg-ink hover:text-white" }}
+              key={item.to}
+              to={item.to}
+              className="rounded-[12px] px-3.5 py-2.5 text-[13px] font-semibold uppercase tracking-[0.09em] text-ink-soft transition-colors hover:bg-leaf-soft/60 hover:text-ink"
+              activeProps={{
+                className: "bg-leaf-soft/80 text-leaf-deep",
+              }}
             >
-              {n.label}
+              {item.label}
             </Link>
           ))}
         </nav>
 
-        <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-          <a href={TEL} className="btn btn-primary btn-sm hidden sm:inline-flex">
-            Book a lesson <Phone size={15} strokeWidth={2.2} />
-          </a>
+        <div className="flex shrink-0 items-center justify-self-end gap-3">
+          <Link to="/book" className="btn hidden lg:inline-flex">
+            Book a lesson <ArrowUpRight size={16} />
+          </Link>
           <button
+            ref={menuButtonRef}
             type="button"
-            onClick={() => setOpen((v) => !v)}
+            onClick={() => setOpen((value) => !value)}
+            aria-label={open ? "Close navigation menu" : "Open navigation menu"}
             aria-expanded={open}
             aria-controls="mobile-nav"
-            aria-label={open ? "Close menu" : "Open menu"}
-            className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-ink ring-1 ring-line-soft card-shadow lg:hidden"
+            className="icon-button lg:hidden"
           >
-            {open ? <X size={19} /> : <Menu size={19} />}
+            <span aria-hidden="true" className="menu-icon" data-open={open}>
+              <span />
+              <span />
+              <span />
+            </span>
           </button>
         </div>
       </div>
 
-      {open && (
-        <div id="mobile-nav" className="lg:hidden">
-          <div className="shell pb-4">
-            <nav aria-label="Mobile navigation" className="surface-card rounded-[26px] p-3">
-              {nav.map((n) => (
-                <Link
-                  key={n.to}
-                  to={n.to}
-                  onClick={() => setOpen(false)}
-                  className="block rounded-2xl px-4 py-3.5 text-base font-medium text-ink-soft transition-colors hover:bg-canvas hover:text-ink"
-                  activeProps={{ className: "bg-blue-soft text-blue-deep hover:bg-blue-soft" }}
-                >
-                  {n.label}
-                </Link>
+      <div
+        id="mobile-nav"
+        className="drop-panel mobile-nav lg:hidden"
+        data-open={open}
+        inert={!open}
+      >
+        <div className="drop-panel-inner">
+          <nav
+            ref={mobileNavRef}
+            aria-label="Mobile navigation"
+            className="shell max-h-[calc(100vh-76px)] overflow-y-auto pb-9 pt-3"
+          >
+            <ol className="drop-stagger border-t border-white/15">
+              {nav.map((item, index) => (
+                <li key={item.to} className="border-b border-white/15">
+                  <Link
+                    to={item.to}
+                    onClick={() => setOpen(false)}
+                    className="display-sm flex min-h-[68px] items-baseline gap-5 py-4 text-2xl uppercase text-warm-white/85 transition-colors hover:text-warm-white"
+                    activeProps={{
+                      className: "text-warm-white",
+                    }}
+                  >
+                    <span aria-hidden="true" className="meta-line w-7 shrink-0 text-leaf-soft">
+                      0{index + 1}
+                    </span>
+                    {item.label}
+                  </Link>
+                </li>
               ))}
-              <a
-                href={TEL}
-                onClick={() => setOpen(false)}
-                className="btn btn-primary mt-2 w-full justify-between"
-              >
-                Book a lesson <Phone size={18} />
-              </a>
-            </nav>
-          </div>
-        </div>
-      )}
-    </header>
-  );
-}
-
-export function Footer() {
-  return (
-    <footer className="mt-auto border-t border-line-soft bg-white/70">
-      <div className="shell py-14 md:py-20">
-        <div className="grid gap-4 lg:grid-cols-12">
-          <div className="surface-card rounded-[32px] p-7 md:p-9 lg:col-span-5">
-            <Logo />
-            <p className="mt-6 max-w-sm text-[15px] leading-relaxed text-muted-text">
-              Calm, one-on-one Class 4 lessons on the Harare roads you&apos;ll actually be tested
-              on. Dual-control cars, free pick-up and instructors who&apos;ve been doing this since
-              2009.
-            </p>
-            <Link to="/book" className="arrow-link mt-7 text-sm">
-              Start your booking <ArrowUpRight size={16} />
-            </Link>
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-3 lg:col-span-7">
-            <FooterCol title="Explore" links={nav.map((n) => ({ label: n.label, to: n.to }))} />
-            <div className="surface-card rounded-[24px] p-6">
-              <p className="eyebrow">Find us</p>
-              <p className="mt-5 text-sm leading-relaxed text-ink">{ADDRESS}</p>
-              <p className="mt-3 text-sm leading-relaxed text-muted-text">
-                Mon–Fri 06:00–18:00
-                <br />
-                Sat 07:00–13:00
-              </p>
-            </div>
-            <div className="surface-card rounded-[24px] p-6">
-              <p className="eyebrow">Talk</p>
-              <a href={TEL} className="mt-5 block text-sm font-medium text-ink hover:text-blue">
+            </ol>
+            <div className="mt-7 flex flex-col items-start gap-4 border-t border-white/15 pt-6 drop-stagger">
+              <Link to="/book" onClick={() => setOpen(false)} className="btn btn--leaf">
+                Book a lesson <ArrowUpRight size={16} />
+              </Link>
+              <a href={TEL} className="text-warm-white/75 transition-colors hover:text-warm-white">
                 {PHONE}
               </a>
-              <a
-                href={`mailto:${EMAIL}`}
-                className="mt-2 block break-all text-sm text-muted-text hover:text-blue"
-              >
-                {EMAIL}
-              </a>
-              <a
-                href={WA}
-                className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-blue"
-              >
-                <MessageCircle size={15} /> WhatsApp us
-              </a>
             </div>
-          </div>
-        </div>
-
-        <div className="mt-10 flex flex-wrap items-center justify-between gap-3 border-t border-line-soft pt-6 text-xs text-muted-text">
-          <p>© {new Date().getFullYear()} Travis Driving School. VID-registered instructors.</p>
+          </nav>
         </div>
       </div>
-    </footer>
+    </header>
   );
 }
 
@@ -172,19 +183,19 @@ function FooterCol({
   links,
 }: {
   title: string;
-  links: ReadonlyArray<{ label: string; to: string }>;
+  links: ReadonlyArray<{ to: RoutePath; label: string }>;
 }) {
   return (
-    <div className="surface-card rounded-[24px] p-6">
-      <p className="eyebrow">{title}</p>
-      <ul className="mt-5 space-y-3">
-        {links.map((l) => (
-          <li key={l.to}>
+    <div>
+      <p className="meta-line text-warm-white/50">{title}</p>
+      <ul className="mt-4 space-y-2.5">
+        {links.map((link) => (
+          <li key={link.to}>
             <Link
-              to={l.to as "/lessons"}
-              className="text-sm text-muted-text transition-colors hover:text-blue"
+              to={link.to}
+              className="inline-flex min-h-[44px] items-center text-sm text-warm-white/70 transition-colors hover:text-warm-white"
             >
-              {l.label}
+              {link.label}
             </Link>
           </li>
         ))}
@@ -193,70 +204,125 @@ function FooterCol({
   );
 }
 
+export function Footer() {
+  return (
+    <footer className="mt-auto border-t border-white/12 bg-ink text-warm-white">
+      <div className="shell py-16 md:py-20">
+        <div className="grid gap-10 md:grid-cols-12 md:gap-8">
+          <div className="md:col-span-5">
+            <Logo compact />
+            <p className="mt-5 max-w-sm text-sm leading-relaxed text-warm-white/70">
+              Class 4 driving lessons in Harare, teaching on test routes from our desk on Fife
+              Avenue since 2009.
+            </p>
+            <div className="bento-card bento-card--dark mt-7 max-w-sm rounded-[20px] p-5">
+              <p className="meta-line text-warm-white/55">Call the desk</p>
+              <a
+                href={TEL}
+                className="display-sm mt-2 inline-flex min-h-[44px] items-center text-2xl text-warm-white transition-colors hover:text-leaf-soft"
+              >
+                {PHONE}
+              </a>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-8 md:col-span-3">
+            <FooterCol title="Learn" links={footerLearn} />
+            <FooterCol title="School" links={footerSchool} />
+          </div>
+
+          <address className="bento-card bento-card--dark rounded-[24px] p-6 not-italic text-sm leading-relaxed text-warm-white/75 md:col-span-4">
+            <p className="meta-line text-warm-white/55">Office</p>
+            <a
+              href={mapHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-2 inline-flex items-start gap-1.5 transition-colors hover:text-warm-white"
+            >
+              <MapPin size={15} className="mt-0.5 shrink-0 text-leaf-soft" />
+              {ADDRESS}
+              <ArrowUpRight size={14} className="mt-0.5 shrink-0" />
+            </a>
+            <dl className="mt-5 grid grid-cols-2 gap-4 border-t border-white/15 pt-4 text-[13px]">
+              <div>
+                <dt className="text-warm-white/50">Mon–Fri</dt>
+                <dd className="mt-1">06:00–18:00</dd>
+              </div>
+              <div>
+                <dt className="text-warm-white/50">Saturday</dt>
+                <dd className="mt-1">07:00–13:00</dd>
+              </div>
+            </dl>
+            <a
+              href={`mailto:${EMAIL}`}
+              className="mt-4 inline-block min-h-[44px] break-words text-warm-white/70 transition-colors hover:text-warm-white"
+            >
+              {EMAIL}
+            </a>
+          </address>
+        </div>
+
+        <div className="mt-12 border-t border-white/15 pt-5 text-xs text-warm-white/55">
+          <p>© {new Date().getFullYear()} Travis Driving School. VID-registered instructors.</p>
+        </div>
+      </div>
+    </footer>
+  );
+}
+
 export function PageHero({
   kicker,
   title,
   intro,
   image,
-  imageAlt,
-  imageCaption,
-  theme = "paper",
+  video,
   children,
+  tall = false,
 }: {
   kicker: string;
   title: ReactNode;
   intro?: ReactNode;
   image?: string;
-  imageAlt?: string;
-  imageCaption?: string;
-  theme?: "paper" | "ink";
+  video?: ReelSource;
   children?: ReactNode;
+  tall?: boolean;
 }) {
-  const dark = theme === "ink";
+  const heroRef = usePointerParallax<HTMLElement>();
+
   return (
-    <section className="bg-canvas">
-      <div className="shell py-12 md:py-16 lg:py-20">
-        <div
-          className={
-            dark
-              ? "relative overflow-hidden rounded-[40px] bg-ink px-7 py-12 text-white md:px-14 md:py-16"
-              : undefined
-          }
-        >
-          {dark && (
-            <div
-              aria-hidden="true"
-              className="pointer-events-none absolute -right-24 -top-32 h-80 w-80 rounded-full bg-blue/25 blur-3xl"
-            />
+    <section ref={heroRef} className={`hero${tall ? " hero--tall" : ""}`}>
+      <div className="hero-media" aria-hidden="true">
+        {video ? (
+          <Reel reel={video} priority decorative rounded="rounded-none" className="h-full w-full" />
+        ) : (
+          image && <img src={image} alt="" className="h-full w-full object-cover" />
+        )}
+      </div>
+      <div aria-hidden="true" className="hero-scrim" />
+      <div aria-hidden="true" className="hero-grain" />
+
+      <div className="shell hero-inner">
+        <div className="hero-copy">
+          <Enter as="p" index={0} className="eyebrow eyebrow-light">
+            {kicker}
+          </Enter>
+          <Enter
+            as="h1"
+            index={1}
+            className="hero-title display mt-4 text-[clamp(2.5rem,6.4vw,5.4rem)]"
+          >
+            {title}
+          </Enter>
+          {intro && (
+            <Enter as="p" index={2} className="lede lede-light mt-5 max-w-2xl">
+              {intro}
+            </Enter>
           )}
-          <div className="relative grid items-center gap-10 lg:grid-cols-12 lg:gap-14">
-            <div className="min-w-0 lg:col-span-7">
-              <p className={`eyebrow ${dark ? "eyebrow-light" : "text-blue"}`}>{kicker}</p>
-              <h1
-                className={`display mt-5 text-[clamp(2.5rem,5.2vw,4.25rem)] ${dark ? "text-white" : "text-ink"}`}
-              >
-                {title}
-              </h1>
-              {intro && <p className={`lede mt-6 max-w-xl ${dark ? "lede-light" : ""}`}>{intro}</p>}
-              {children && <div className="mt-8">{children}</div>}
-            </div>
-            {image && (
-              <div className="min-w-0 lg:col-span-5">
-                <div className="overflow-hidden rounded-[32px] bg-surface card-shadow-lg">
-                  <img
-                    src={image}
-                    alt={imageAlt ?? ""}
-                    className="photo-soft h-[260px] w-full object-cover md:h-[340px] lg:h-[380px]"
-                  />
-                </div>
-                {imageCaption && (
-                  <p className={`mt-4 text-xs ${dark ? "text-white/50" : "text-muted-text"}`}>
-                    {imageCaption}
-                  </p>
-                )}
-              </div>
-            )}
-          </div>
+          {children && (
+            <Enter index={3} className="hero-actions">
+              {children}
+            </Enter>
+          )}
         </div>
       </div>
     </section>
@@ -275,31 +341,35 @@ export function SectionTop({
   action?: ReactNode;
 }) {
   return (
-    <div className="grid gap-5 md:grid-cols-12 md:items-end md:gap-8">
-      <div className="min-w-0 md:col-span-8">
-        <p className="eyebrow text-blue">{kicker}</p>
-        <h2 className="display-sm mt-4 text-[clamp(1.9rem,3.6vw,2.9rem)] text-ink">{title}</h2>
-        {intro && <p className="lede mt-4 max-w-2xl">{intro}</p>}
+    <Reveal className="border-t border-line pt-7">
+      <div className="grid gap-6 md:grid-cols-12 md:items-end md:gap-10">
+        <div className="min-w-0 md:col-span-8">
+          <p className="eyebrow">{kicker}</p>
+          <h2 className="display-sm mt-4 text-[clamp(2rem,4vw,3.25rem)] text-ink">{title}</h2>
+          {intro && <p className="lede mt-4 max-w-2xl">{intro}</p>}
+        </div>
+        {action && <div className="md:col-span-4 md:justify-self-end">{action}</div>}
       </div>
-      {action && <div className="md:col-span-4 md:justify-self-end">{action}</div>}
-    </div>
+    </Reveal>
   );
 }
 
 export function StatGrid() {
-  const items = [
-    ["2,400+", "students licensed"],
-    ["87%", "pass first time"],
-    ["17", "years on Harare roads"],
-    ["6", "dual-control cars"],
-  ] as const;
   return (
     <dl className="grid grid-cols-2 gap-3">
-      {items.map(([value, label]) => (
-        <div key={label} className="rounded-[20px] bg-white p-5 ring-1 ring-line-soft card-shadow">
-          <dt className="display-sm text-[clamp(1.4rem,3vw,2rem)] text-ink">{value}</dt>
-          <dd className="mt-2 text-xs leading-snug text-muted-text md:text-[13px]">{label}</dd>
-        </div>
+      {stats.map((stat, index) => (
+        <Reveal
+          key={stat.label}
+          as="div"
+          kind="pop"
+          delay={index * 70}
+          className="bento-card bento-card--soft rounded-[20px] p-4 md:p-5"
+        >
+          <dt className="display tabular text-[clamp(1.6rem,3.4vw,2.6rem)] leading-none text-ink">
+            {stat.value}
+          </dt>
+          <dd className="mt-2 text-xs leading-snug text-muted-text">{stat.label}</dd>
+        </Reveal>
       ))}
     </dl>
   );
@@ -307,44 +377,156 @@ export function StatGrid() {
 
 export function CTA() {
   return (
-    <section className="shell pb-20 md:pb-28">
-      <div className="relative overflow-hidden rounded-[40px] bg-ink px-7 py-12 text-white md:px-14 md:py-16">
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute -right-20 -top-28 h-80 w-80 rounded-full bg-blue/25 blur-3xl"
-        />
-        <div className="relative grid gap-10 lg:grid-cols-12 lg:items-end lg:gap-14">
-          <div className="min-w-0 lg:col-span-7">
-            <p className="eyebrow eyebrow-light">No forms to fill in. Just a message.</p>
-            <h2 className="display-sm mt-5 text-[clamp(2rem,4vw,3.25rem)] text-white">
-              Your first lesson is one message away.
-            </h2>
-          </div>
-          <div className="flex flex-col gap-3 lg:col-span-5">
-            <a href={WA} className="btn btn-primary btn-lg w-full justify-between">
-              Message us on WhatsApp <ArrowUpRight size={18} />
-            </a>
-            <a href={TEL} className="btn btn-outline-light btn-lg w-full justify-between">
-              Call {PHONE} <Phone size={16} />
-            </a>
-            <p className="mt-2 text-xs text-white/50">
-              Usually replied to within the hour, Mon–Sat.
-            </p>
-          </div>
+    <section className="shell section-pad">
+      <Reveal
+        kind="scale"
+        className="bento-card bento-card--dark card-pad-lg grid gap-10 lg:grid-cols-12 lg:items-end lg:gap-14"
+      >
+        <div className="min-w-0 lg:col-span-7">
+          <p className="eyebrow">One message is enough</p>
+          <h2 className="display-sm mt-5 text-[clamp(2rem,4.2vw,3.4rem)] text-warm-white">
+            Your first lesson is one message away.
+          </h2>
         </div>
-      </div>
+        <div className="lg:col-span-5">
+          <p className="mb-5 max-w-md text-sm text-warm-white/70">
+            Tell us your suburb and when you&apos;re free. An instructor replies, not a bot.
+          </p>
+          <div className="flex flex-col items-start gap-3">
+            <a href={TEL} className="action-link action-link-light text-xl md:text-2xl">
+              Call {PHONE} <ArrowUpRight size={18} />
+            </a>
+            <a href={WA} className="arrow-link arrow-link-light text-sm">
+              Message us on WhatsApp <ArrowUpRight size={16} />
+            </a>
+          </div>
+          <p className="mt-5 text-xs text-warm-white/55">
+            Usually replied to within the hour, Mon–Sat.
+          </p>
+        </div>
+      </Reveal>
     </section>
   );
 }
 
 export function FAQ({ items }: { items: ReadonlyArray<{ q: string; a: string }> }) {
+  const [open, setOpen] = useState<number | null>(null);
+  const idBase = useId();
+
   return (
     <div className="faq-list">
-      {items.map((item) => (
-        <details key={item.q} className="faq-item">
-          <summary>{item.q}</summary>
-          <p>{item.a}</p>
-        </details>
+      {items.map((item, index) => {
+        const isOpen = open === index;
+        const panelId = `${idBase}-faq-${index}`;
+
+        return (
+          <Reveal key={item.q} as="div" delay={index * 55} className="faq-item" data-open={isOpen}>
+            <button
+              type="button"
+              className="faq-trigger"
+              aria-expanded={isOpen}
+              aria-controls={panelId}
+              onClick={() => setOpen(isOpen ? null : index)}
+            >
+              <span>{item.q}</span>
+              <span aria-hidden="true" className="faq-toggle">
+                +
+              </span>
+            </button>
+            <div
+              id={panelId}
+              role="region"
+              aria-label={item.q}
+              aria-hidden={!isOpen}
+              className="drop-panel"
+              data-open={isOpen}
+            >
+              <div className="drop-panel-inner">
+                <p className="faq-panel-inner">{item.a}</p>
+              </div>
+            </div>
+          </Reveal>
+        );
+      })}
+    </div>
+  );
+}
+
+export function ReelGallery({
+  kicker,
+  title,
+  intro,
+  items,
+}: {
+  kicker: string;
+  title: ReactNode;
+  intro?: ReactNode;
+  items: ReadonlyArray<{
+    reel: ReelSource;
+    kicker: string;
+    title: string;
+    copy: string;
+  }>;
+}) {
+  return (
+    <section className="shell section-pad">
+      <SectionTop kicker={kicker} title={title} intro={intro} />
+      <div className="bento-grid mt-12">
+        {items.map((item, index) => (
+          <Reveal
+            key={item.reel.src}
+            as="figure"
+            kind="scale"
+            delay={index * 80}
+            className={`bento-card overflow-hidden ${
+              index === 0 ? "md:col-span-7" : index === 1 ? "md:col-span-5" : "md:col-span-12"
+            }`}
+          >
+            <Reel
+              reel={item.reel}
+              priority={index === 0}
+              rounded="rounded-none"
+              className={index === 2 ? "aspect-[21/9] w-full" : "aspect-[16/10] w-full"}
+            />
+            <figcaption className="card-pad">
+              <p className="eyebrow">{item.kicker}</p>
+              <h3 className="display-sm mt-2 text-xl text-ink">{item.title}</h3>
+              <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-text">{item.copy}</p>
+            </figcaption>
+          </Reveal>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+export function JourneyBento() {
+  const spans = ["md:col-span-7", "md:col-span-5", "md:col-span-5", "md:col-span-7"] as const;
+
+  return (
+    <div className="bento-grid">
+      {journey.map((step, index) => (
+        <Reveal
+          key={step.n}
+          as="article"
+          kind={index % 2 === 0 ? "rise" : "scale"}
+          delay={index * 70}
+          className={`bento-card card-pad ${spans[index] ?? "md:col-span-6"}`}
+        >
+          <div className="flex items-baseline justify-between gap-4">
+            <span className="display tabular text-5xl leading-none text-leaf-deep">{step.n}</span>
+            <span className="meta-line text-muted-text">{step.tag}</span>
+          </div>
+          <div className="ratio-media mt-6 aspect-[16/10]">
+            {step.video ? (
+              <Reel reel={step.video} rounded="rounded-none" className="h-full w-full" />
+            ) : (
+              <img src={step.image} alt={step.alt} className="photo h-full w-full" />
+            )}
+          </div>
+          <h3 className="display-sm mt-6 text-2xl text-ink">{step.title}</h3>
+          <p className="lede mt-3 text-[0.98rem]">{step.copy}</p>
+        </Reveal>
       ))}
     </div>
   );
@@ -355,65 +537,84 @@ export function JourneyShowcase() {
   const step = journey[active] ?? journey[0];
 
   return (
-    <div className="grid gap-8 lg:grid-cols-12 lg:gap-12">
-      <div className="lg:col-span-5">
-        <div className="grid gap-2.5">
-          {journey.map((s, i) => {
-            const isActive = active === i;
+    <div className="bento-grid">
+      <div className="md:col-span-5">
+        <ol className="bento-card overflow-hidden">
+          {journey.map((item, index) => {
+            const isActive = active === index;
             return (
-              <button
-                key={s.n}
-                type="button"
-                onClick={() => setActive(i)}
-                aria-pressed={isActive}
-                className={`group flex w-full items-center gap-4 rounded-[22px] border px-5 py-4 text-left transition-all ${
-                  isActive
-                    ? "border-blue/20 bg-white card-shadow"
-                    : "border-transparent bg-white/60 hover:bg-white"
+              <Reveal
+                key={item.n}
+                as="li"
+                delay={index * 65}
+                className={`border-b border-line last:border-b-0 ${
+                  isActive ? "bg-leaf-soft/70" : "bg-transparent"
                 }`}
               >
-                <span
-                  className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${
-                    isActive ? "bg-blue text-white" : "bg-canvas text-muted-text"
-                  }`}
+                <button
+                  type="button"
+                  onClick={() => setActive(index)}
+                  aria-pressed={isActive}
+                  className="flex min-h-[92px] w-full items-start gap-4 p-5 text-left transition-colors hover:bg-surface/60"
                 >
-                  {s.n}
-                </span>
-                <span className="min-w-0 flex-1">
                   <span
-                    className={`display-sm block text-lg md:text-xl ${isActive ? "text-ink" : "text-ink-soft"}`}
+                    className={`display tabular w-11 shrink-0 text-3xl leading-none ${
+                      isActive ? "text-leaf-deep" : "text-muted-text"
+                    }`}
                   >
-                    {s.title}
+                    {item.n}
                   </span>
-                  <span className="mt-0.5 block text-xs text-muted-text">{s.tag}</span>
-                </span>
-                <ArrowRight
-                  size={16}
-                  className={`shrink-0 transition-transform ${
-                    isActive ? "text-blue" : "text-muted-text group-hover:translate-x-0.5"
-                  }`}
-                />
-              </button>
+                  <span className="min-w-0 flex-1">
+                    <span
+                      className={`display-sm block text-xl ${isActive ? "text-ink" : "text-ink-soft"}`}
+                    >
+                      {item.title}
+                    </span>
+                    <span className="mt-1 block text-xs uppercase tracking-[0.1em] text-muted-text">
+                      {item.tag}
+                    </span>
+                  </span>
+                  <ArrowRight
+                    size={16}
+                    className={`mt-1 shrink-0 transition-transform ${
+                      isActive ? "text-leaf-deep" : "text-muted-text group-hover:translate-x-0.5"
+                    }`}
+                  />
+                </button>
+              </Reveal>
             );
           })}
-        </div>
+        </ol>
+        <p className="mt-5 max-w-sm text-xs leading-relaxed text-muted-text">
+          Four stages, one test route. Move through the list to see each step.
+        </p>
       </div>
-      <div className="lg:col-span-7">
-        <div className="overflow-hidden rounded-[32px] bg-surface card-shadow-lg">
-          <img
-            key={step.image}
-            src={step.image}
-            alt={step.alt}
-            className="photo-soft animate-fade h-[300px] w-full object-cover md:h-[420px]"
+
+      <Reveal as="div" kind="scale" className="bento-card overflow-hidden md:col-span-7">
+        <div key={step.n} className="zone-enter hero-media relative aspect-[16/10] bg-ink">
+          {step.video ? (
+            <Reel
+              key={step.video.src}
+              reel={step.video}
+              rounded="rounded-none"
+              className="h-full w-full"
+            />
+          ) : (
+            <img key={step.image} src={step.image} alt={step.alt} className="photo h-full w-full" />
+          )}
+          <div
+            aria-hidden="true"
+            className="hero-scrim pointer-events-none absolute inset-0 opacity-70"
           />
-        </div>
-        <div className="mt-6 flex flex-wrap items-start justify-between gap-4 px-1">
-          <p className="lede measure max-w-xl">{step.copy}</p>
-          <span className="rounded-full bg-white px-3 py-1.5 text-xs font-medium text-muted-text ring-1 ring-line-soft">
-            {step.n} / 04
+          <span className="meta-line absolute bottom-4 left-5 text-warm-white/80">
+            {step.n} / 04 · {step.tag}
           </span>
         </div>
-      </div>
+        <div className="card-pad">
+          <h3 className="display-sm text-2xl text-ink">{step.title}</h3>
+          <p className="lede mt-3 text-[0.98rem]">{step.copy}</p>
+        </div>
+      </Reveal>
     </div>
   );
 }

@@ -14,7 +14,6 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as AreasRouteImport } from './routes/areas'
 import { Route as BookRouteImport } from './routes/book'
 import { Route as ContactRouteImport } from './routes/contact'
-import { Route as CreditsRouteImport } from './routes/credits'
 import { Route as LessonsRouteImport } from './routes/lessons'
 import { Route as PricesRouteImport } from './routes/prices'
 
@@ -43,11 +42,6 @@ const ContactRoute = ContactRouteImport.update({
   path: '/contact',
   getParentRoute: () => rootRouteImport,
 } as any)
-const CreditsRoute = CreditsRouteImport.update({
-  id: '/credits',
-  path: '/credits',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const LessonsRoute = LessonsRouteImport.update({
   id: '/lessons',
   path: '/lessons',
@@ -65,7 +59,6 @@ export interface FileRoutesByFullPath {
   '/areas': typeof AreasRoute
   '/book': typeof BookRoute
   '/contact': typeof ContactRoute
-  '/credits': typeof CreditsRoute
   '/lessons': typeof LessonsRoute
   '/prices': typeof PricesRoute
 }
@@ -75,7 +68,6 @@ export interface FileRoutesByTo {
   '/areas': typeof AreasRoute
   '/book': typeof BookRoute
   '/contact': typeof ContactRoute
-  '/credits': typeof CreditsRoute
   '/lessons': typeof LessonsRoute
   '/prices': typeof PricesRoute
 }
@@ -86,31 +78,15 @@ export interface FileRoutesById {
   '/areas': typeof AreasRoute
   '/book': typeof BookRoute
   '/contact': typeof ContactRoute
-  '/credits': typeof CreditsRoute
   '/lessons': typeof LessonsRoute
   '/prices': typeof PricesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    | '/'
-    | '/about'
-    | '/areas'
-    | '/book'
-    | '/contact'
-    | '/credits'
-    | '/lessons'
-    | '/prices'
+    '/' | '/about' | '/areas' | '/book' | '/contact' | '/lessons' | '/prices'
   fileRoutesByTo: FileRoutesByTo
-  to:
-    | '/'
-    | '/about'
-    | '/areas'
-    | '/book'
-    | '/contact'
-    | '/credits'
-    | '/lessons'
-    | '/prices'
+  to: '/' | '/about' | '/areas' | '/book' | '/contact' | '/lessons' | '/prices'
   id:
     | '__root__'
     | '/'
@@ -118,7 +94,6 @@ export interface FileRouteTypes {
     | '/areas'
     | '/book'
     | '/contact'
-    | '/credits'
     | '/lessons'
     | '/prices'
   fileRoutesById: FileRoutesById
@@ -129,7 +104,6 @@ export interface RootRouteChildren {
   AreasRoute: typeof AreasRoute
   BookRoute: typeof BookRoute
   ContactRoute: typeof ContactRoute
-  CreditsRoute: typeof CreditsRoute
   LessonsRoute: typeof LessonsRoute
   PricesRoute: typeof PricesRoute
 }
@@ -171,13 +145,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ContactRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/credits': {
-      id: '/credits'
-      path: '/credits'
-      fullPath: '/credits'
-      preLoaderRoute: typeof CreditsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/lessons': {
       id: '/lessons'
       path: '/lessons'
@@ -201,7 +168,6 @@ const rootRouteChildren: RootRouteChildren = {
   AreasRoute: AreasRoute,
   BookRoute: BookRoute,
   ContactRoute: ContactRoute,
-  CreditsRoute: CreditsRoute,
   LessonsRoute: LessonsRoute,
   PricesRoute: PricesRoute,
 }

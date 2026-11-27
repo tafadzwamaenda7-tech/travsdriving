@@ -1,14 +1,11 @@
+import { PHOTO, VIDEO } from "@/lib/media";
+
+/**
+ * Only the contact page keeps the existing Harare photograph the client likes.
+ * Everywhere else uses Travis-owned media from `src/lib/media.ts`.
+ */
 export const IMG = {
-  hero: "/images/hero-harare.jpg",
-  traffic: "/images/city-traffic.jpg",
-  boulevard: "/images/jacaranda-boulevard.jpg",
-  square: "/images/jacaranda-square.jpg",
-  street: "/images/jacaranda-street.jpg",
   skyline: "/images/city-skyline.jpg",
-  lessonCar: "/images/lesson-car.jpg",
-  wheel: "/images/wheel-detail.jpg",
-  hands: "/images/learner-hands.jpg",
-  driver: "/images/driver-portrait.jpg",
 } as const;
 
 export const stats = [
@@ -24,32 +21,36 @@ export const journey = [
     title: "Get your provisional",
     copy: "We take the VID oral test one question at a time. Road signs, right of way, the awkward ones — you leave knowing why, not just what.",
     tag: "Week 1–2",
-    image: IMG.lessonCar,
-    alt: "A driver with a car in Zimbabwe",
+    image: PHOTO.carDetail,
+    alt: "A Travis learner car with its L-plate",
+    video: undefined,
   },
   {
     n: "02",
     title: "Find your feet",
     copy: "Clutch, gears, mirrors, steering. We start on the quiet streets around Avondale and Belgravia until the car feels like an extension of you.",
     tag: "Lessons 1–6",
-    image: IMG.hands,
-    alt: "A learner holding a provisional licence",
+    image: PHOTO.fleet,
+    alt: "Travis Driving School learner cars",
+    video: undefined,
   },
   {
     n: "03",
     title: "Meet the city",
     copy: "Roundabouts, robots, kombis and the CBD at 5pm. You learn the rhythm of Harare traffic with someone calm in the passenger seat.",
     tag: "Lessons 7–14",
-    image: IMG.traffic,
-    alt: "A busy street in central Harare",
+    image: VIDEO.street.poster,
+    alt: "Learner cars in Harare traffic",
+    video: VIDEO.street,
   },
   {
     n: "04",
     title: "Own the test route",
     copy: "Hill starts, three-point turns, reverse and parallel parking — on the exact roads examiners use. Test day becomes just another drive.",
     tag: "Lessons 15–20",
-    image: IMG.boulevard,
-    alt: "Young people dancing in the streets of Harare",
+    image: VIDEO.departure.poster,
+    alt: "Cars leaving the Travis practice yard",
+    video: VIDEO.departure,
   },
 ] as const;
 
